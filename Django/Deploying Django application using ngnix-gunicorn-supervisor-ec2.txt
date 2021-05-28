@@ -182,8 +182,12 @@ This means supervisour make sure gunicorn always running in background to proces
 
 
 installing Supervisour
-
+for ubuntu
 $ sudo apt-get install supervisor -y
+
+for Amz Linux
+$ sudo amazon-linux-extras install epel
+$ sudo yum install supervisor
 
 After installation success we need to create a configuration so supervisor read from that configuration
 
