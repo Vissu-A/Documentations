@@ -23,6 +23,8 @@ INSTALLED_APPS = [
 
 
 Add S3 settings
+---------------
+First create AWS IAM user with programatic access with "S3Fullaccess" policy and download the credential csv file.
 
 AWS_ACCESS_KEY_ID = ''
 AWS_SECRET_ACCESS_KEY = ''
@@ -39,18 +41,66 @@ STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'        # To ser
 
 
 S3 CORS Settings
+----------------
 
 1. Go to aws management console and go to S3 Service.
 2. go to S3 bucket permissions and add CORS policy Configurations.
 
-<?xml version="1.0" encoding="UTF-8"?>
-<CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-<CORSRule>
-    <AllowedOrigin>*</AllowedOrigin>
-    <AllowedMethod>GET</AllowedMethod>
-    <AllowedMethod>POST</AllowedMethod>
-    <AllowedMethod>PUT</AllowedMethod>
-    <AllowedHeader>*</AllowedHeader>
-</CORSRule>
+JSON Configuration
+------------------
+[
+    {
+        "AllowedHeaders": [
+            "*"
+        ],
+        "AllowedMethods": [
+            "PUT",
+            "POST",
+            "DELETE",
+	    "GET"
+        ],
+        "AllowedOrigins": [
+            "*"
+        ],
+        "ExposeHeaders": [
+            "x-amz-server-side-encryption",
+            "x-amz-request-id",
+            "x-amz-id-2"
+        ],
+        "MaxAgeSeconds": 0
+    }
+]
+
+XML Configuration
+-----------------
+<CORSConfiguration>
+ <CORSRule>
+   <AllowedOrigin>*</AllowedOrigin>
+   <AllowedMethod>PUT</AllowedMethod>
+   <AllowedMethod>POST</AllowedMethod>
+   <AllowedMethod>DELETE</AllowedMethod>
+   <AllowedMethod>GET</AllowedMethod>
+   <AllowedHeader>*</AllowedHeader>
+  <MaxAgeSeconds>3000</MaxAgeSeconds>
+  <ExposeHeader>x-amz-server-side-encryption</ExposeHeader>
+  <ExposeHeader>x-amz-request-id</ExposeHeader>
+  <ExposeHeader>x-amz-id-2</ExposeHeader>
+ </CORSRule>
 </CORSConfiguration>
 
+
+S3 Bucket policy
+----------------
+{
+    "Version": "2012-10-17",
+    "Id": "Policy1625997466452",
+    "Statement": [
+        {
+            "Sid": "Stmt1625997464802",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::bookstore-post-images/*"     # Bucket ARN link
+        }
+    ]
+}

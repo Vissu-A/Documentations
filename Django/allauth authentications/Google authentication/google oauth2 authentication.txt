@@ -1,0 +1,118 @@
+=======================================================================================================================================================================
+									Google Oauth2 Authenctication
+=======================================================================================================================================================================
+1. open GCP site in browser, click on console.
+
+gcp ==> console  ==>  create new project  ==>  go to API and Services  ==>  Credentials  ==>  Select the project  ==>  create new credentials
+
+
+2. we will have "Cliend id" and "Client secret".
+
+
+3. we have 2 sections where we need to add the redirect callback URLs
+
+	1. Authorized JavaScript origins
+	2. Authorized redirect URIs
+
+
+4. Authorized JavaScript origins
+
+	add "http://127.0.0.1:8000"
+
+
+5. Authorized redirect URIs
+	
+	add "http://127.0.0.1:8000/cuser/social-auth/google/login/callback/"          # this is for local devlopment. it accepts http protocol schema.
+	add "https://book.webfordemo.xyz/cuser/social-auth/google/login/callback/"    # this is for production. it accepts only https protocol schema.
+
+	     http://domain/<app-name>/social-auth/google/login/callback/
+
+
+6. clcik on Save.
+
+
+7. Now, got to OAuth consent screen and publish the app. publishing status will be changes to "in production".
+
+8. Open settings file add these to the installed apps list.
+	
+	# social all auth
+    	'allauth',
+    	'allauth.account',
+    	'allauth.socialaccount',
+
+   	 # social all auth providers
+    	'allauth.socialaccount.providers.google',
+    	'allauth.socialaccount.providers.facebook',
+
+9. Now add the following lines to settings file.
+
+	SOCIALACCOUNT_PROVIDERS = {
+    		'google': {
+        		'SCOPE': [
+            			'profile',
+            			'email',
+        		],
+        		'AUTH_PARAMS': {
+            			'access_type': 'online',
+        		}
+   		 },
+	}
+
+
+	# For social all auth
+	SITE_ID = 1
+	ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+	ACCOUNT_USERNAME_REQUIRED = False
+	ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
+	ACCOUNT_EMAIL_REQUIRED = True
+	ACCOUNT_UNIQUE_EMAIL =True
+
+	ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
+	ACCOUNT_LOGOUT_ON_GET = True
+	ACCOUNT_LOGOUT_REDIRECT_URL = 'user-signin-path'
+	SOCIALACCOUNT_AUTO_SIGNUP = True 
+
+	ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
+	
+	# allauth creates redirect url in http by default, adding this line will make allauth create https  redirect urls
+	ACCOUNT_DEFAULT_HTTP_PROTOCOL='https'    # this is for production when we have ssl certificate on site.
+
+
+10. Now go to django admin site and open the sites app.
+
+	django admin ==>  sites  ==>  if the site is not added then click on "add site".      # if you can't see this, please applpy migrations and check.
+	
+	enter domain name
+		127.0.0.1  # local
+		book.webfordemo.xyz  # production
+
+	enter display name
+		127.0.0.1  # local
+		book.webfordemo.xyz  # production
+
+	click save.
+
+
+11. Now go to django Admin site. open the social applications.
+
+	django admin site  ==>  social applications.    # if you can't see this, please applpy migrations and check.
+
+12. social applications  ==>  clcik "add social application"
+
+	select provider  ==>  google from dropdown
+
+	enter name  ==>  Google-authentication
+
+	enter the client id  ==>   copy the client id from gcp API and Services credentials.
+
+	enter secrect key  ==>   copy the client secrect from gcp API and Services credentials.
+
+	select the site from available sites and add to choosen sites.
+
+	clcik on save.
+
+
+13. Now add the below link button code to signin html file.
+	
+	<a class='form-control btn btn-warning' id="id_login" href="{% provider_login_url 'google' %}">Continue with Google</a>

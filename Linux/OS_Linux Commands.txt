@@ -1,0 +1,7 @@
+1. sudo apt-get update
+2. sudo apt-get upgrade
+3. sudo apt list --upgradable
+
+4. cat /etc/os-release     # to see the OS details, version, name
+5. lsb_release -a	   # to see the OS details, version, name
+6. hostnamectl		   # to see the OS details, version, name

@@ -27,3 +27,11 @@
 Done. 
 
 python-3.6.5 will be installed in the location "/usr/local/bin/python3"
+
+once python installed, install pip
+
+> sudo yum install python3-pip
+
+After install, check it.
+
+> pip3 --version

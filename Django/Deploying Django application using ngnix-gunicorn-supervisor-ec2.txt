@@ -16,99 +16,109 @@ This will verify the check list for deploy ready and gives the WARNINGS if we mi
 Then Keep '*' under ALLOWED_HOSTS = [] in the settings.py file to allow all hosts to the application.
 
 
-=============================================================
-STEP-2 INSATLLING PYTHON AND CONFIGURING VIRTUAL ENVIRONMENT
-=============================================================
-After these checks connect to EC2 Instance
-
-ubuntu@ip-172-31-16-29:~$ ls -l
-total 0
+After these checks connect to EC2 Instance and update the OS packages.
 
 
-$ sudo apt-get update
+======================================
+STEP-2 UPDATE AND UPGRADE OS PACKAGES
+======================================
 
-$ sudo apt-get upgrade -y
+$ sudo apt-get update -y  (or)    sudo yum update -y
 
-After update and upgrade 
+$ sudo apt-get upgrade -y  (or)   sudo yum upgrade -y
+
+After update and upgrade install specific version
+
+
+=======================================
+STEP-3 INSTALLING REQUIRED OS PACKAGES
+=======================================
+$ sudo yum install wget -y
+$ sudo yum install git -y
+
+==========================================
+STEP-3 INSATLLING SPECIFIC PYTHON VERSION
+==========================================
+
+> install pre-reqisites based on your OS
+
+	For RedHat:
+		sudo yum install @development zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz xz-devel libffi-devel findutils -y
+		sudo yum install gcc glibc glibc-common gd gd-devel -y
+		sudo yum groupinstall "Development tools" -y
+
+	For Ubuntu:
+		sudo apt-get install libedit-dev
+		sudo apt-get install libncurses5-dev
+		sudo apt-get install build-essential
+
+> cd /opt
+
+> list of python versions
+
+	Refer this link "https://www.python.org/ftp/python/"
+
+> sudo wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tgz
+
+> sudo tar -xzvf Python-3.6.5.tgz
+
+> cd Python-3.6.5
+
+> sudo ./configure
+
+> sudo make altinstall
+
+Done. 
+
+python-3.6.5 will be installed in the location "/usr/local/bin/python3"
 
 check python is installed and python version and where it is insatlled
 
 $ python3 --version
-Python 3.6.9
+Python 3.6.5
 
 $ which python3
-/usr/bin/python3
+/usr/local/bin/python3
 
-install virtualenvironment
+After installing python, install and configure virtualenvironment
 
-$ sudo apt-get install python3-venv
+$ sudo apt-get install python3-pip
+$ sudo apt-get install python3.6-dev python3.6-venv
 
-After installing venv create a folder to organize all virtualenvironments.
+======================================================
+STEP-4 INSTALLING AND CONFIGURING VIRTUAL ENVIRONMENT
+======================================================
 
-$ mkdir VirEnv
+> Create a virtualenvironment for our application
 
-Change directory to VirEnv
+    $ python3 -m venv Django2.0.7_Py3.6.9
 
-$ cd VirEnv
+> Change directory to virtualenvironment
 
-Create a virtualenvironment for our application
+    $ cd Django2.0.7_Py3.6.9/
 
-$ python3 -m venv Django2.0.7_Py3.6.9
+> Activate virtualenvironment
 
-
-ubuntu@ip-172-31-16-29:~/VirEnv$ ls -l
-total 4
-drwxrwxr-x 6 ubuntu ubuntu 4096 Jun 13 11:21 Django2.0.7_Py3.6.9
-
-
-Change directory to virtualenvironment
-
-ubuntu@ip-172-31-16-29:~/VirEnv$ cd Django2.0.7_Py3.6.9/
-
-ubuntu@ip-172-31-16-29:~/VirEnv/Django2.0.7_Py3.6.9$
-
-
-Activate virtualenvironment
-
-ubuntu@ip-172-31-16-29:~/VirEnv/Django2.0.7_Py3.6.9$ source bin/activate
-(Django2.0.7_Py3.6.9) ubuntu@ip-172-31-16-29:~/VirEnv/Django2.0.7_Py3.6.9$
-
-
-Install Django AND other dependencies
-
-$ pip install django==2.0.7
-
-$ pip freeze
-Django==2.0.7
-pkg-resources==0.0.0
-pytz==2020.1
-
-$ pip install Pillow==7.1.2
-
-$ pip freeze
-Django==2.0.7
-Pillow==7.1.2
-pkg-resources==0.0.0
-pytz==2020.1
-
+    $ source bin/activate
 
 
 ============================
-STEP-3 CLONE GIT REPOSITORY
+STEP-5 CLONE GIT REPOSITORY
 ============================
 
 Now clone the git peoject repository
 
-git clone https://github.com/Vissu-A/Web-Dev.git
+$ git clone <paste/github/repository/url>
 
-(Django2.0.7_Py3.6.9) ubuntu@ip-172-31-16-29:~$ ls -l
-total 8
-drwxrwxr-x 3 ubuntu ubuntu 4096 Jun 13 11:21 VirEnv
-drwxrwxr-x 4 ubuntu ubuntu 4096 Jun 13 12:09 Web-Dev
+
+======================================
+STEP-6 INSTALLING DEPENDENCIE MODULES
+======================================
+$ pip install -r requirements.txt
 
 
 =====================================
-STEP-4 INSTALLING Nginx and Gunicorn
+STEP-7 INSTALLING Nginx and Gunicorn
 =====================================
 we need some softwares to server our application from aws Ec2
 
@@ -126,7 +136,7 @@ so we are going to use a wsgi interface which name is 'gunicorn'
 
 
 Insatlling nginx and Gunicorn
-
+-----------------------------
 gunicorn is a pip module
 
 (Django2.0.7_Py3.6.9) ubuntu@ip-172-31-16-29:~$ pip install gunicorn
@@ -144,7 +154,7 @@ If you are unable to see Welcome to nginx! message make sure that you are added 
 
 
 =====================================
-STEP-5 CONNECTING Gunicorn and Nginx
+STEP-8 CONNECTING Gunicorn and Nginx
 =====================================
 
 
@@ -168,7 +178,7 @@ if you get dissalowed host error then add instance IPv4 Public IP address to ALL
 
 
 =============================
-STEP-6 Configure Supervisour
+STEP-9 Configure Supervisour
 =============================
 
 NOTE:
@@ -302,9 +312,9 @@ Now restart nginx "$ sudo service nginx restart"
 
 Now Enter IPv4 Public IP "http://52.14.57.170/" in the browser and you can see the application
 
-
+=============================
 Now serving static files
-
+=============================
 why the static files are not loading because these static files should be server by nginx but nginx is unable to find them
 
 we need to configure in the nginx confiugrations file which we created above django.conf

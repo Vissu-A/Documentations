@@ -1,0 +1,7 @@
+1. ls -l
+2. ls -la
+3. rm filename/folder name
+4. rm -r filename/folder name
+5. mv source_file_path destination_file_path
+6. mkdir <folder_name>    # mkdir settings
+7. cp file1 file2

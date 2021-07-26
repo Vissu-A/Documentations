@@ -1,0 +1,2 @@
+1. systemctl status <service_name>   # systemctl status nginx
+2. systemctl restart <service_name>  # systemctl restart nginx

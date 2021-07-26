@@ -1,0 +1,55 @@
+=======================================================================================================================================================================
+									Multiple Settings.py file
+=======================================================================================================================================================================
+
+1. Inside the project folder create a folder with name "settings"
+
+2. Create __init__.py file inside the settings folder.
+
+3. Move the default "settings.py" file into settings folder.
+
+4. Create a file with name "base.py"
+
+5. Open the default settings.py file and copy the settings and paste into base.py file
+
+6. Now, create 3 different files local.py, dev.py and prod.py.
+
+We will add the settings which are common to all environments inside the base.py and we will import them to each individual settings file.
+
+local.py
+--------
+from .base import *
+
+dev.py
+------
+from .base import *
+
+prod.py
+-------
+from .base import *
+
+
+We will add the settings which are specific to an environment in the respective settings file. example database settings are different for each environment.
+
+
+Now, we are done with multiple settings files.
+
+But, out of these files which file settings should be consider?
+
+we can specify the settings file to be used while running the server.
+
+Python manage.py runserver --settings = project_name.settings.local    # this tells load the settings from local.py file.
+
+This is okay for local devlopment, how can we choose the settings file dynamically in production.
+
+Now, add these lines to the wsgi.py, celery.py(if using celery) and manage.py files.
+
+
+import sys
+
+platform = sys.platform
+if platform == "win32":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Bookstore.settings.local")
+elif platform in ["linux", "Linux", "ubuntu", "Ubuntu"]:
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Bookstore.settings.dev")
+
