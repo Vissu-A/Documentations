@@ -1,0 +1,258 @@
+Updating OS packages
+--------------------
+sudo apt-get update -y
+sudo apt-get upgrade -y
+
+Installing Dev tools and pre-requieset packages
+-----------------------------------------------
+sudo apt-get install build-essential -y
+sudo apt install libssl-dev
+sudo apt-get install python3-dev
+sudo apt-get install libmysqlclient-dev
+sudo apt-get install libedit-dev -y
+sudo apt-get install libncurses5-dev
+sudo apt-get install zlib1g-dev
+sudo apt install libncurses5-dev
+sudo apt install libsqlite3-dev
+sudo apt install libreadline-dev
+sudo apt install libtk8.6
+sudo apt install libgdm-dev
+sudo apt install libdb4o-cil-dev
+sudo apt install libpcap-dev
+
+Installing other required softwares
+-----------------------------------
+sudo apt-get install git
+
+
+installing Specific python version in Ubuntu
+--------------------------------------------
+cd /opt
+sudo wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tgz
+sudo tar -xzvf Python-3.6.5.tgz
+cd Python-3.6.5
+sudo ./configure --enable-optimizations
+sudo make altinstall
+
+
+Verify the Python and pip installation
+--------------------------------------
+python3.6 --version     # gives the version information
+which python3.6         # gives where(i.e,location) the above python version is installed
+pip3 --version			# gives the pip version and location where it is installed
+
+
+Creating and Activating Virtual Environment
+-------------------------------------------
+python3.6 -m venv bookenv(environment name)
+cd bookenv/
+source bin/activate
+
+
+Clone the repository
+--------------------
+git clone https://github.com/Vissu-A/Proj_Bookstore.git
+
+
+installing requirements
+-----------------------
+pip install -r requirements.txt (or) pip3 install -r requirements.txt
+
+
+installing Nginx
+----------------
+sudo apt-get install nginx
+
+Checking Nginx Status
+---------------------
+systemctl status nginx
+
+NOTE: open browser and enter "http://instance-ip:80". you will see Welcome to nginx! message
+
+NOTE: If you are unable to see Welcome to nginx! message make sure that you are added HTTP rule in inbound rules of Security Group for the instance.
+
+
+
+installing Gunicorn
+-------------------
+pip install gunicorn (or) pip3 install gunicorn
+
+
+installing Supervisor
+----------------------
+sudo apt-get install supervisor
+
+
+Checking Supervisor status
+--------------------------
+systemctl status supervisor
+
+
+
+
+Now, Create a configuration file for gunicorn to run in background by supervisor
+--------------------------------------------------------------------------------
+cd /etc/supervisor/conf.d/
+sudo touch superconf.conf
+
+paste the below code in the configuration file and save
+this code is to run gunicorn in the background by the supervisor
+========================================================================================================
+[program:gunicorn]
+directory=/home/ubuntu/Proj_Bookstore/Bookstore
+command=/home/ubuntu/bookenv/bin/gunicorn --worker-class=gevent --workers 3 --pid /var/log/gunicorn/guni_worker.pid --bind unix:/home/ubuntu/Proj_Bookstore/Bookstore/app.sock Bookstore.wsgi:application --timeout 120
+autostart=true
+autorestart=true
+
+stderr_logfile=/var/log/gunicorn/gunicorn.err.log
+stdout_logfile=/var/log/gunicorn/gunicorn.out.log
+
+[group:guni]
+programs:gunicorn
+========================================================================================================
+
+Create the folder in specified path to store gunicron log files
+sudo mkdir /var/log/gunicorn
+
+
+
+
+Now, Create a configuration file for celery to run in background by supervisor
+------------------------------------------------------------------------------
+cd /etc/supervisor/conf.d/
+sudo touch celery.conf
+
+paste the below code in the configuration file and save
+this code is to run celery in the background by the supervisor
+========================================================================================================
+[program:app-celery]
+command=/home/ubuntu/bookenv/bin/celery -A Bookstore worker -l info
+directory=/home/ubuntu/Proj_Bookstore/Bookstore
+
+numprocs=1
+stdout_logfile=/var/log/celery/celery.out.log
+stderr_logfile=/var/log/celery/celery.err.log
+autostart=true
+autorestart=true
+startsecs=10
+
+; Need to wait for currently executing tasks to finish at shutdown.
+; Increase this if you have very long running tasks.
+stopwaitsecs = 600
+
+stopasgroup=true
+
+; Set Celery priority higher than default (999)
+; so, if rabbitmq is supervised, it will start first.
+priority=1000
+
+
+[group:celery]
+programs:app-celery
+========================================================================================================
+
+Create the folder in specified path to store gunicron log files
+sudo mkdir /var/log/celery
+
+
+we need to install message broker "Redis server" to communicate between app and celery
+> sudo apt-get install redis-server -y              # install redis server
+> sudo systemctl enable redis-server.service
+> sudo systemctl restart redis.service              # restarting redis server
+> sudo systemctl status redis						# checking redis server status
+
+
+
+
+Now, making supervisor read these configuration files and run in background
+---------------------------------------------------------------------------
+cd /etc/supervisor/conf.d
+sudo supervisorctl reread
+sudo supervisorctl update
+
+sudo supervisorctl status
+
+
+
+Configuring Nginx
+------------------
+cd /etc/nginx/sites-available
+sudo touch djangoapp.conf
+sudo nano djangoapp.conf
+
+paste the below code in djangoapp.conf file and save
+=========================================================================
+server {
+        listen 80;
+        server_name 13.59.107.100;
+
+		// setting proxy pass
+        location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/ubuntu/Proj_Bookstore/Bookstore/app.sock (or) http://13.59.107.100:8000;
+        }
+		
+		// to serve the static files like css, js and images
+		location /static/ {
+        autoindex on;
+        alias /home/ubuntu/Proj_Bookstore/Bookstore/books/static/; 		# should be same as STATIC_ROOT path specified in settings.py file
+        }
+}
+=========================================================================
+
+sudo ln djangoapp.conf /etc/nginx/sites-enabled/
+sudo nginx -t                                           # tells the configuration is correct or not
+
+
+NOTE: After making any change in the nginx configuration we need to restart the server, then only the changes will reflect.
+
+systemctl restart nginx
+systemctl status nginx
+
+
+
+installing mysql db
+-------------------
+sudo apt-get install mysql-server
+
+open mysqldb and create a database
+----------------------------------
+mysql -u root -p
+create database bookstore;
+
+
+creating databse user and grant all privileges
+----------------------------------------------
+CREATE USER IF NOT EXISTS bookuser IDENTIFIED BY 'root';
+GRANT ALL ON *.* TO bookuser;
+
+set password for user
+---------------------
+SET PASSWORD FOR bookuser = 'bookuser';
+
+
+
+configuring the database settings
+---------------------------------
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'USER': 'bookuser',
+        'PASSWORD': 'bookuser',
+        'NAME': 'bookstore',
+        'OPTIONS': {
+            # 'read_default_file': os.path.join(BASE_DIR, 'my.cnf'),
+            'init_command': 'SET default_storage_engine=INNODB',
+        },
+    }
+}
+
+
+running migrations
+------------------
+cd /home/ubuntu/Proj_Bookstore/Bookstore
+python manage.py makemigrations
+python manage.py migrate
+python manage.py collectstatic    # to serve the admin static files
